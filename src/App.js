@@ -1,43 +1,47 @@
-import React, {useRef, useState} from 'react';
-import PostItem from './components/PostItem';
+import React, {useMemo, useState} from 'react';
+import PostFilter from './components/PostFilter';
+import PostForm from './components/PostForm';
 import PostList from './components/PostList';
-import MyInput from './components/UI/button/input/MyInput';
-import MyButton from './components/UI/button/MyButton';
 import './styles/App.css';
 
 function App() {
   
   const [posts, setPosts] = useState([
-    {id: 1, title: 'Javascript', body: 'Description'},
-    {id: 2, title: 'Javascript 2', body: 'Description'},
-    {id: 3, title: 'Javascript 3', body: 'Description'}
+    {id: 1, title: 'cc', body: 'kk'},
+    {id: 2, title: 'bb', body: 'hh'},
+    {id: 3, title: 'jj', body: 'aa'}
   ])
 
-  const [post, setPost] = useState({body: '', title: ''});
-  
-  const addNewPost = (event) => {
-    event.preventDefault();
-    setPosts([...posts, {...post, id: Date.now()}]);
-    setPost({body: '', title: ''})
+  const [filter, setFilter] = useState({sort: '', query: ''});
+
+  const sortedPosts = useMemo(() => {
+    if (filter.sort) {
+      return [...posts].sort((a,b) => a[filter.sort].localeCompare(b[filter.sort]))
+    }
+      return posts;
+  }, [posts, filter.sort]);
+
+  const sortedAndSearchedPosts = useMemo(() => {
+      return sortedPosts.filter(post => post.title.toLowerCase().includes(filter.query.toLowerCase()));
+  }, [filter.query, sortedPosts]);
+
+  const createPost = (newPost) => {
+    setPosts ([...posts, newPost])
+  }
+
+  // Получаем post из дочернего элемента
+  const removePost = (post) => {
+    setPosts(posts.filter(p => p.id !== post.id))
   }
 
   return (
     <div className="App">
-      <form>
-        {/* Управляемый компонент (инпут) */}
-        <MyInput type='text' 
-        placeholder='Название статьи' 
-        value={post.title}
-        onChange={event => setPost({...post, title: event.target.value})}>
-        </MyInput>
-        <MyInput type='text' 
-        placeholder='Описание статьи'
-        value={post.body}
-        onChange={event => setPost({...post, body: event.target.value})}>
-        </MyInput>
-        <MyButton onClick={addNewPost}>Создать пост</MyButton>
-      </form>
-      <PostList posts={posts} title='Посты про JS'/>
+      <PostForm create={createPost}/>
+      <hr style={{margin: '15px 0'}}/>
+      <PostFilter
+        filter={filter}
+        setFilter={setFilter} />
+      <PostList posts={sortedAndSearchedPosts} remove={removePost} title='Посты про JS'/>
     </div>
   );
 }
