@@ -1,36 +1,32 @@
-import React, {useMemo, useState} from 'react';
+import React, { useEffect, useState } from 'react';
+import PostService from './API/PostService';
 import PostFilter from './components/PostFilter';
 import PostForm from './components/PostForm';
 import PostList from './components/PostList';
 import MyButton from './components/UI/button/MyButton';
 import MyModal from './components/UI/modal/MyModal';
+import { usePosts } from './hooks/usePosts';
 import './styles/App.css';
 
 function App() {
   
-  const [posts, setPosts] = useState([
-    {id: 1, title: 'cc', body: 'kk'},
-    {id: 2, title: 'bb', body: 'hh'},
-    {id: 3, title: 'jj', body: 'aa'}
-  ])
-
+  const [posts, setPosts] = useState([ ]);
   const [filter, setFilter] = useState({sort: '', query: ''});
   const [modal, setModal] = useState(false);
-
-  const sortedPosts = useMemo(() => {
-    if (filter.sort) {
-      return [...posts].sort((a,b) => a[filter.sort].localeCompare(b[filter.sort]))
-    }
-      return posts;
-  }, [posts, filter.sort]);
-
-  const sortedAndSearchedPosts = useMemo(() => {
-      return sortedPosts.filter(post => post.title.toLowerCase().includes(filter.query.toLowerCase()));
-  }, [filter.query, sortedPosts]);
-
+  const sortedAndSearchedPosts = usePosts(posts, filter.sort, filter.query);
+  
+  useEffect(() => {
+    fetchPosts();
+  }, [ ]);
+  
   const createPost = (newPost) => {
     setPosts ([...posts, newPost]);
     setModal (false)
+  }
+
+  async function fetchPosts () {
+    const posts = await PostService.getAll();
+    setPosts(posts);
   }
 
   // Получаем post из дочернего элемента
