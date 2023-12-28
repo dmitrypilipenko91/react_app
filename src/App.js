@@ -4,7 +4,9 @@ import PostFilter from './components/PostFilter';
 import PostForm from './components/PostForm';
 import PostList from './components/PostList';
 import MyButton from './components/UI/button/MyButton';
+import MyLoader from './components/UI/loader/MyLoader';
 import MyModal from './components/UI/modal/MyModal';
+import { useFetching } from './hooks/useFetching';
 import { usePosts } from './hooks/usePosts';
 import './styles/App.css';
 
@@ -14,6 +16,10 @@ function App() {
   const [filter, setFilter] = useState({sort: '', query: ''});
   const [modal, setModal] = useState(false);
   const sortedAndSearchedPosts = usePosts(posts, filter.sort, filter.query);
+  const [fetchPosts, isPostLoading, postError] = useFetching(async () => {
+    const posts = await PostService.getAll();
+    setPosts(posts);
+  });
   
   useEffect(() => {
     fetchPosts();
@@ -22,11 +28,6 @@ function App() {
   const createPost = (newPost) => {
     setPosts ([...posts, newPost]);
     setModal (false)
-  }
-
-  async function fetchPosts () {
-    const posts = await PostService.getAll();
-    setPosts(posts);
   }
 
   // Получаем post из дочернего элемента
@@ -46,7 +47,17 @@ function App() {
       <PostFilter
         filter={filter}
         setFilter={setFilter} />
-      <PostList posts={sortedAndSearchedPosts} remove={removePost} title='Посты про JS' />
+      {postError &&
+        <div style={{display: 'flex', justifyContent: 'center'}}>
+          <h1>Произошла ошибка!</h1>
+        </div>
+      }
+      {isPostLoading
+        ? <div style={{display: 'flex', justifyContent: 'center', marginTop: '50px'}}> 
+            <MyLoader /> 
+          </div>
+        : <PostList posts={sortedAndSearchedPosts} remove={removePost} title='Посты про JS' />
+      }
     </div>
   );
 }
