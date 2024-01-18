@@ -22,6 +22,12 @@
     border: solid green 2px;
     margin-top: 15px
 }
+
+.post__btn {
+    display: flex;
+    gap: 10px
+}
+
 .post-enter {
     transform: translateX(-350px);
     opacity: 0;
